@@ -8,6 +8,7 @@ class UserSignUp implements UseCase<String, UserSignUpParams> {
   final AuthRepository
       authRepository; //make sure the import is not from data layer
   const UserSignUp(this.authRepository);
+
   @override
   Future<Either<Failure, String>> call(UserSignUpParams params) async {
     return await authRepository.signUpWithEmailPassword(
