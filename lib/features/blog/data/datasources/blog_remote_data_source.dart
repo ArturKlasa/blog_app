@@ -8,6 +8,7 @@ abstract interface class BlogRemoteDataSource {
   Future<BlogModel> uploadBlog(BlogModel blog);
   Future<String> uploadBlogImage(
       {required File image, required BlogModel blog});
+  Future<List<BlogModel>> getAllBlogs();
 }
 
 class BlogRemoteDataSourceImpl implements BlogRemoteDataSource {
@@ -39,6 +40,23 @@ class BlogRemoteDataSourceImpl implements BlogRemoteDataSource {
           );
 //retrieve url of the image
       return supabaseClient.storage.from('blog_images').getPublicUrl(blog.id);
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<List<BlogModel>> getAllBlogs() async {
+    try {
+      final blogs = await supabaseClient.from('blogs').select(
+          '*, profiles (name)'); // here we get data from supabase blogs table, in select it goes to profiles table and takes name, because ogf the foreign key
+      return blogs
+          .map(
+            (blog) => BlogModel.fromJson(blog).copyWith(
+              posterName: blog['profiles']['name'],
+            ),
+          )
+          .toList();
     } catch (e) {
       throw ServerException(e.toString());
     }
