@@ -38,7 +38,7 @@ class _AddNewBlogPageState extends State<AddNewBlogPage> {
     }
   }
 
-  void uploadBLog() {
+  void uploadBlog() {
     if (formKey.currentState!.validate() &&
         selectedTopics.isNotEmpty &&
         image != null) {
@@ -70,7 +70,7 @@ class _AddNewBlogPageState extends State<AddNewBlogPage> {
         actions: [
           IconButton(
             onPressed: () {
-              uploadBLog();
+              uploadBlog();
             },
             icon: const Icon(
               Icons.done_rounded,

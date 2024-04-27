@@ -6,8 +6,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract interface class BlogRemoteDataSource {
   Future<BlogModel> uploadBlog(BlogModel blog);
-  Future<String> uploadBlogImage(
-      {required File image, required BlogModel blog});
+  Future<String> uploadBlogImage({
+    required File image,
+    required BlogModel blog,
+  });
   Future<List<BlogModel>> getAllBlogs();
 }
 
@@ -22,6 +24,8 @@ class BlogRemoteDataSourceImpl implements BlogRemoteDataSource {
           await supabaseClient.from('blogs').insert(blog.toJson()).select();
 
       return BlogModel.fromJson(blogData.first);
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -33,13 +37,17 @@ class BlogRemoteDataSourceImpl implements BlogRemoteDataSource {
     required BlogModel blog,
   }) async {
     try {
-      //upload image to supabase storage
       await supabaseClient.storage.from('blog_images').upload(
             blog.id,
             image,
           );
-//retrieve url of the image
-      return supabaseClient.storage.from('blog_images').getPublicUrl(blog.id);
+
+      return supabaseClient.storage.from('blog_images').getPublicUrl(
+            blog.id,
+            // blog.imageUrl,
+          );
+    } on StorageException catch (e) {
+      throw ServerException(e.message);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -48,8 +56,8 @@ class BlogRemoteDataSourceImpl implements BlogRemoteDataSource {
   @override
   Future<List<BlogModel>> getAllBlogs() async {
     try {
-      final blogs = await supabaseClient.from('blogs').select(
-          '*, profiles (name)'); // here we get data from supabase blogs table, in select it goes to profiles table and takes name, because ogf the foreign key
+      final blogs =
+          await supabaseClient.from('blogs').select('*, profiles (name)');
       return blogs
           .map(
             (blog) => BlogModel.fromJson(blog).copyWith(
@@ -57,6 +65,8 @@ class BlogRemoteDataSourceImpl implements BlogRemoteDataSource {
             ),
           )
           .toList();
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
     } catch (e) {
       throw ServerException(e.toString());
     }
